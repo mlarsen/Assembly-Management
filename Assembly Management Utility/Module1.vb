@@ -4,8 +4,8 @@ Imports System.IO
 Imports System.IO.Compression
 Module Module1
     Public sqlArray(10) As String
-    Public stPath As String = "E:\Core\HeltonTools\Test"
-    'Public stPath As String = System.AppDomain.CurrentDomain.BaseDirectory()
+    'Public stPath As String = "E:\Core\HeltonTools\CSEngine"
+    Public stPath As String = System.AppDomain.CurrentDomain.BaseDirectory()
     Public stODBCString As String
     Public bolIsClientServer As Boolean
     Public bolIsError As Boolean = False
@@ -227,18 +227,36 @@ Module Module1
 
         SQLTextQuery("U", stSQL, stODBCString, 0)
 
-        'Add the Adjust time field
-        stSQL = "ALTER TABLE KitAdjustments "
-        stSQL = stSQL + "ADD COLUMN IF NOT EXISTS AdjustDate DATE DEFAULT CURRENT_DATE, "
-        stSQL = stSQL + "ADD COLUMN IF NOT EXISTS KitAdjustQty INTEGER AT 7;"
-        SQLTextQuery("U", stSQL, stODBCString, 0)
+        'Check to see if the table needs to be updated
+        If FieldExists("KitAdjustments", "UnitCost") = False Then
+            'Add the Adjust time field
+            stSQL = "ALTER TABLE KitAdjustments "
+            stSQL = stSQL + "ADD COLUMN IF NOT EXISTS AdjustDate DATE DEFAULT CURRENT_DATE, "
+            stSQL = stSQL + "ADD COLUMN IF NOT EXISTS KitAdjustQty INTEGER AT 7;"
+            SQLTextQuery("U", stSQL, stODBCString, 0)
 
-        'Add the UnitCost field
-        stSQL = "ALTER TABLE KitAdjustments "
-        stSQL = stSQL + "ADD COLUMN IF NOT EXISTS UnitCost FLOAT;"
-        SQLTextQuery("U", stSQL, stODBCString, 0)
+            'Add the UnitCost field
+            stSQL = "ALTER TABLE KitAdjustments "
+            stSQL = stSQL + "ADD COLUMN IF NOT EXISTS UnitCost FLOAT;"
+            SQLTextQuery("U", stSQL, stODBCString, 0)
+        End If
+
+
 
     End Sub
+    Function FieldExists(ByRef stTableName As String, ByRef stFieldName As String) As Boolean
+        Dim stSQl As String = "SELECT * FROM " + stTableName + ";"
+        Dim da As New OdbcDataAdapter(stSQl, stODBCString)
+        Dim ds As New DataSet()
+
+        da.Fill(ds, "logn")
+
+        If ds.Tables(0).Columns.Contains(stFieldName) Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
     Sub LoadDataGridViewSQL(ByRef stSQL As String, ByRef GV As DataGridView)
 
 
